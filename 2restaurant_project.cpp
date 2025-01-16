@@ -8,6 +8,10 @@
 #include<vector>
 using namespace std;
 
+const string menu = "C:\\Users\\User\\Desktop\\restaurant_project\\menu.txt";
+const string workdays = "C:\\Users\\User\\Desktop\\restaurant_project\\workdays.txt";
+const string storage = "C:\\Users\\User\\Desktop\\restaurant_project\\storage.txt";
+
 vector<string> split(const string& str, char delimiter) {
 	vector<string> result;
 	string current;
@@ -23,11 +27,9 @@ vector<string> split(const string& str, char delimiter) {
 			current += ch;
 		}
 	}
-
 	if (!current.empty()) {
 		result.push_back(current);
 	}
-
 	return result;
 }
 
@@ -67,7 +69,8 @@ struct Date {
 	}
 
 	void printDate() {
-		cout << (day < 10 ? "0" : "") << day << "." << (month < 10 ? "0" : "") << month << "." << year << endl;
+		cout << (day < 10 ? "0" : "") << day << "." 
+			<< (month < 10 ? "0" : "") << month << "." << year << endl;
 	}
 };
 
@@ -85,15 +88,6 @@ struct Dish {
 	string name;
 	vector<string> ingredients;
 	double price;
-
-	void printIt() {
-		cout << "The dish " << name << " is made of ";
-		for (size_t i = 0; i < ingredients.size(); ++i) {
-			cout << ingredients[i];
-			if (i < ingredients.size() - 1) cout << ", ";
-		}
-		cout << " and costs " << price;
-	}
 };
 
 struct StorageItem {
@@ -101,25 +95,25 @@ struct StorageItem {
 	int amount;
 };
 
-StorageItem* storageArr(const string& fileName) {
-		ifstream stFile(fileName);
+vector<StorageItem> createStorageVec(const string& fileName) {
+	ifstream stFile(fileName);
 
-		if (!stFile.is_open()) {
-			cout << "error";
-		}
-
-		string line;
-		StorageItem* items = new StorageItem[50];
-		int i = 0;
-		while (getline(stFile, line)) {
-			vector<string> ln = split(line, ' ');
-            items[i].name = ln[0];
-			items[i].amount = stoi(ln[1]);
-			i++;
-		}
-        stFile.close();
-		return items;
+	if (!stFile.is_open()) {
+		cout << "error";
 	}
+
+	string line;
+	vector<StorageItem> items;
+	int i = 0;
+	while (getline(stFile, line)) {
+		vector<string> ln = split(line, ' ');
+		items[i].name = ln[0];
+		items[i].amount = stoi(ln[1]);
+		i++;
+	}
+	stFile.close();
+	return items;
+}
 
 void takeOrder(const string& workdays) {
 	cout << "What would you like to order?" << endl;
@@ -178,20 +172,71 @@ int ingredientsCount(const string& fileName) {
 	return count;
 }
 
-void addToStorage(string item, int amount) {
-	string stFile;
-	StorageItem* items = storageArr(stFile);
-	int &
-	for (int i = 0; i < ;) {
+void addToStorage(string itemToAddTo, int amountToAdd, vector<StorageItem> items) {
 
+	for (int i = 0; i < items.size(); i++) {
+
+		if (items[i].name == itemToAddTo) {
+			items[i].amount += amountToAdd;
+			break;
+		}
 	}
 
+	updateProductAmount(storageFile, itemToAddTo, to_string(amountToAdd), items);
 }
 
+void removeFromStorage(string itemToRemoveFrom, int amountToRemove, vector<StorageItem> items) {
+	StorageItem cur;
+
+	for (int i = 0; i < items.size(); i++) {
+		cur = { items[i].name, items[i].amount };
+
+		if (items[i].name == itemToRemoveFrom) {
+
+			if (amountToRemove > cur.amount) {
+				cur.amount = 0;
+				break;
+			}
+			else {
+				cur.amount -= amountToRemove;
+				break;
+			}
+		}
+	}
+	updateProductAmount(storageFile, itemToRemoveFrom, to_string(amountToRemove), items);
+}
+
+
+void updateProductAmount(const string& fileName, string product, string amount, vector<StorageItem> items) {
+	string line;
+	ifstream ifs(fileName);
+	if (!ifs.is_open()) {
+		cout << "error";
+		return;
+	}
+
+	ofstream ofs(fileName, ios::app);
+	if (!ifs.is_open()) {
+		cout << "error";
+		ifs.close();
+		return;
+	}
+	
+	vector<string> words;
+	while (getline(ifs, line)) {
+		words = split(line, ' ');
+		if (words[0] == product) {
+			words[1] = amount;
+			break;
+		}
+	}
+
+	ifs.close();
+	ofs.close();
+}
+
+
 int main() {
-	//const string menu = "C:\\Users\\User\\Desktop\\restaurant_project\\menu.txt";
-	//const string workdays = "C:\\Users\\User\\Desktop\\restaurant_project\\workdays.txt";
-	//const string storage = "C:\\Users\\User\\Desktop\\restaurant_project\\storage.txt";
 
 	Dish d[8] = {
 		{"Nachos with Guacamole", {"nachos", "guacamole", "cheese"}, 11},
@@ -203,7 +248,6 @@ int main() {
 		{"Margarita", {"tequila", "lime", "orange liqueur"}, 13},
 		{"Horchata", {"rice milk", "cinnamon sugar", "vanilla"}, 7}
 	};
-   //delete[] storage
 	return 0;
 }
 
