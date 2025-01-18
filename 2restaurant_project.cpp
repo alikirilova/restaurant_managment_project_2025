@@ -100,16 +100,17 @@ vector<StorageItem> createStorageVec(const string& fileName) {
 
 	if (!stFile.is_open()) {
 		cout << "error";
+		return {};
 	}
 
 	string line;
 	vector<StorageItem> items;
-	int i = 0;
 	while (getline(stFile, line)) {
-		vector<string> ln = split(line, ' ');
-		items[i].name = ln[0];
-		items[i].amount = stoi(ln[1]);
-		i++;
+		vector<string> ln = split(line, '=');
+		StorageItem item;
+		item.name = ln[0];
+		item.amount = stoi(ln[1]);
+		items.push_back(item);
 	}
 	stFile.close();
 	return items;
@@ -172,67 +173,73 @@ int ingredientsCount(const string& fileName) {
 	return count;
 }
 
-void addToStorage(string itemToAddTo, int amountToAdd, vector<StorageItem> items) {
-
-	for (int i = 0; i < items.size(); i++) {
-
-		if (items[i].name == itemToAddTo) {
-			items[i].amount += amountToAdd;
-			break;
-		}
-	}
-
-	updateProductAmount(storageFile, itemToAddTo, to_string(amountToAdd), items);
-}
-
-void removeFromStorage(string itemToRemoveFrom, int amountToRemove, vector<StorageItem> items) {
-	StorageItem cur;
-
-	for (int i = 0; i < items.size(); i++) {
-		cur = { items[i].name, items[i].amount };
-
-		if (items[i].name == itemToRemoveFrom) {
-
-			if (amountToRemove > cur.amount) {
-				cur.amount = 0;
-				break;
-			}
-			else {
-				cur.amount -= amountToRemove;
-				break;
-			}
-		}
-	}
-	updateProductAmount(storageFile, itemToRemoveFrom, to_string(amountToRemove), items);
-}
-
-
-void updateProductAmount(const string& fileName, string product, string amount, vector<StorageItem> items) {
+void updateProductAmount(const string& fileName, string product, string amount) {
 	string line;
+	string updatedLine;
+	vector<string> fileLines;
 	ifstream ifs(fileName);
 	if (!ifs.is_open()) {
 		cout << "error";
 		return;
 	}
 
-	ofstream ofs(fileName, ios::app);
-	if (!ifs.is_open()) {
-		cout << "error";
-		ifs.close();
-		return;
-	}
-	
-	vector<string> words;
+	bool isPresent = false;
 	while (getline(ifs, line)) {
-		words = split(line, ' ');
+		vector<string> words = split(line, '=');
 		if (words[0] == product) {
 			words[1] = amount;
+			isPresent = true;
+		}
+		updatedLine = words[0] + "=" + words[1];
+		fileLines.push_back(updatedLine);
+	}
+	ifs.close();
+
+	if (isPresent == false) {
+		cout << "No such product found" << endl;
+		return;
+	}
+
+    ofstream ofs(fileName, ios::out);
+    if (!ofs.is_open()) {
+        cout << "error";
+        ifs.close();
+        return;
+    }
+
+	for (int i = 0; i < fileLines.size(); i++) {
+			ofs << fileLines[i] << endl;
+	   }
+
+	ofs.close();
+}
+
+void addToItem(string itemToAddTo, int amountToAdd, vector<StorageItem>& items, const string& fileName) {
+	StorageItem cur;
+	for (int i = 0; i < items.size(); i++) {
+		cur = { items[i].name, items[i].amount };
+		if (items[i].name == itemToAddTo) {
+			items[i].amount += amountToAdd;
+			updateProductAmount(fileName, itemToAddTo, to_string(items[i].amount));
 			break;
 		}
 	}
+}
+void removeFromItem(string itemToRemoveFrom, int amountToRemove, vector<StorageItem>& items, const string& fileName) {
+	for (int i = 0; i < items.size(); i++) {
+		if (items[i].name == itemToRemoveFrom) {
 
-	ifs.close();
-	ofs.close();
+			if (amountToRemove > items[i].amount) {
+				cout << "not enough " << items[i].name;
+				break;
+			}
+			else {
+				items[i].amount -= amountToRemove;
+                updateProductAmount(storageFile, itemToRemoveFrom, to_string(items[i].amount));
+				break;
+			}
+		}
+	}
 }
 
 
