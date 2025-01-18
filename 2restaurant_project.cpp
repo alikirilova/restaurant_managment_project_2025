@@ -128,6 +128,46 @@ void takeOrder(const string& workdays) {
 	workFile.close();
 }
 
+vector<Meal> createMenuVec(const string& fileName) {
+	ifstream mFile(fileName);
+
+	if (!mFile.is_open()) {
+		cout << "error";
+		return {};
+	}
+
+	string line1, line2;
+	vector<Meal> meals;
+
+	while (getline(mFile, line1)) {
+		getline(mFile, line2);
+		if (line1.empty() || line2.empty() || line1 == "MENU") {
+			continue;
+		} 
+
+        Meal meal;
+		vector<string> ln1 = split(line1, '-');
+		meal.name = ln1[0];
+		meal.price = stod(ln1[1]);
+
+		vector<string> ln2 = split(line2, '|');
+		vector<StorageItem> ingredients;
+
+		for (int i = 0; i < ln2.size(); i++) {
+			vector<string> cur = split(ln2[i], '-');
+
+			StorageItem  ingredient;
+			ingredient.name = cur[0];
+			ingredient.amount = stoi(cur[1]);
+			ingredients.push_back(ingredient);
+		}
+		meal.ingredients = ingredients;
+		meals.push_back(meal);
+	}
+	mFile.close();
+	return meals;
+}
+
 void viewMenu(const string& fileName) {
 
 	ifstream menu(fileName);
