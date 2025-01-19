@@ -1,7 +1,5 @@
 // 2restaurant_project.cpp : This file contains the 'main' function. Program execution begins and ends there.
 //
-
-
 #include <iostream>
 #include<fstream>
 #include<string>
@@ -168,6 +166,100 @@ vector<Meal> createMenuVec(const string& fileName) {
 	return meals;
 }
 
+string toLowerCase(string& word) {
+	for (char& c : word) {
+		c = tolower(c);
+	}
+	return word;
+}
+
+void addDishToMenuFile(Meal meal, const string& fileName) {
+	string linel;
+	ofstream ofs(fileName, ios::app);
+	if (!ofs.is_open()) {
+		cout << "error";
+		return;
+	}
+
+	ofs << endl << endl << toLowerCase(meal.name) << "-" << meal.price << endl;
+
+	for (int i = 0; i < meal.ingredients.size(); i++) {
+		StorageItem si = meal.ingredients[i];
+		if (i != (meal.ingredients.size() - 1)) {
+            ofs << si.name << "-" << si.amount << "|";
+		}
+		else {
+			ofs << si.name << "-" << si.amount;
+		}
+	}
+	ofs.close();
+}
+
+void removeDishFromMenuFile(const string& fileName, string dishToRemove) {
+	string line1, line2, line3, line4;
+	ifstream ifs(fileName);
+	if (!ifs.is_open()) {
+		cout << "error";
+		return;
+	}
+
+	bool isPresent = false;
+	bool isLastDish = false;
+	vector<string> newFileLines;
+	while (getline(ifs, line1)) {
+		getline(ifs, line2);
+		if (!getline(ifs, line3)){
+			isLastDish = true;
+		}
+		if (isLastDish != true) {
+			getline(ifs, line4);
+		}
+
+		vector<string> ln1 = split(line1, '-');
+		if (ln1[0] == dishToRemove) {
+			isPresent = true;
+			continue;
+		}
+
+        newFileLines.push_back(line1);
+		newFileLines.push_back(line2);
+
+		if (isLastDish != true) {
+			newFileLines.push_back(line3);
+			newFileLines.push_back(line4);
+		}
+	}
+	ifs.close();
+
+	if (isPresent == false) {
+		cout << "No such dish found" << endl;
+		return;
+	}
+
+	ofstream ofs(fileName, ios::out);
+	if (!ofs.is_open()) {
+		cout << "error";
+		return;
+	}
+
+	for (int i = 0; i < newFileLines.size(); i++) {
+		ofs << newFileLines[i] << endl;
+	}
+	ofs.close();
+}
+
+void removeMealFromVec(string mealToRemove, vector<Meal>& meals) {
+	Meal cur;
+	for (int i = 0; i < meals.size(); i++) {
+		cur = { meals[i].name, meals[i].ingredients, meals[i].price};
+
+		if (cur.name == mealToRemove) {
+			meals.erase(meals.begin() + i);
+			break;
+		}
+	}
+}
+
 void viewMenu(const string& fileName) {
 
 	ifstream menu(fileName);
@@ -243,7 +335,6 @@ void updateProductAmount(const string& fileName, string product, string amount) 
     ofstream ofs(fileName, ios::out);
     if (!ofs.is_open()) {
         cout << "error";
-        ifs.close();
         return;
     }
 
@@ -285,16 +376,6 @@ void removeFromItem(string itemToRemoveFrom, int amountToRemove, vector<StorageI
 
 int main() {
 
-	Dish d[8] = {
-		{"Nachos with Guacamole", {"nachos", "guacamole", "cheese"}, 11},
-		{"Chicken Tacos", {"tortilla", "chicken", "iceberg lettuce", "tomato suace"}, 15},
-		{"Chicken Enchiladas", {"tortilla", "chicken", "tomato sauce", "cheese"}, 18},
-		{"Shrimp Fajitas", {"shrimp", "bell peppers", "onions", "tortilla", "avocado"}, 20},
-		{"Churros with Chocolate Sauce", {"dough", "cinnamon sugar", "chocolate sauce"}, 11},
-		{"Flan", {"eggs", "condensed milk", "caramel", "vanilla"}, 10},
-		{"Margarita", {"tequila", "lime", "orange liqueur"}, 13},
-		{"Horchata", {"rice milk", "cinnamon sugar", "vanilla"}, 7}
-	};
 	return 0;
 }
 
