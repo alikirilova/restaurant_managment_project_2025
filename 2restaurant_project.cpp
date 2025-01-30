@@ -1,14 +1,15 @@
-// 2restaurant_project.cpp : This file contains the 'main' function. Program execution begins and ends there.
+// finalRestaurantPr.cpp : This file contains the 'main' function. Program execution begins and ends there.
 //
+
 #include <iostream>
 #include<fstream>
 #include<string>
 #include<vector>
 using namespace std;
 
-const string menu = "C:\\Users\\User\\Desktop\\restaurant_project\\menu.txt";
-const string workdays = "C:\\Users\\User\\Desktop\\restaurant_project\\workdays.txt";
-const string storage = "C:\\Users\\User\\Desktop\\restaurant_project\\storage.txt";
+const string menuFile = "C:\\Users\\User\\Desktop\\restaurant_project\\menu.txt";
+const string workdaysFile = "C:\\Users\\User\\Desktop\\restaurant_project\\workdays.txt";
+const string storageFile = "C:\\Users\\User\\Desktop\\restaurant_project\\storage.txt";
 
 vector<string> split(const string& str, char delimiter) {
 	vector<string> result;
@@ -25,111 +26,95 @@ vector<string> split(const string& str, char delimiter) {
 			current += ch;
 		}
 	}
+
 	if (!current.empty()) {
 		result.push_back(current);
 	}
+
 	return result;
 }
-
 
 struct Date {
 	int day = 1;
 	int month = 1;
 	int year = 2025;
-
-	bool isLeapYear() {
-		return (year % 100 != 0 && year % 4 == 0) || (year % 400 == 0);
-	}
-
-	int getDaysInMonth() {
-		switch (month) {
-			case 4:
-			case 6:
-			case 9:
-			case 11:
-				return 30;
-			case 2:
-				return isLeapYear() ? 29 : 28;
-			default: return 31;
-		}
-	}
-
-	void goToNextDay() {
-		day++;
-		if (day > getDaysInMonth()) {
-			day = 1;
-			month++;
-			if (month > 12) {
-				month = 1;
-				year++;
-			}
-		}
-	}
-
-	void printDate() {
-		cout << (day < 10 ? "0" : "") << day << "." 
-			<< (month < 10 ? "0" : "") << month << "." << year << endl;
-	}
 };
 
-void newDate(const string& workdays) {
-	ofstream workFile(workdays, ios::app);
-	Date currDate;
-	currDate.goToNextDay();
-
-	workFile << (currDate.day < 10 ? "0" : "") << currDate.day <<
-		"." << (currDate.month < 10 ? "0" : "") << currDate.month << "." << currDate.year << endl;
-	workFile.close();
+bool isLeapYear(Date& date) {
+	return (date.year % 100 != 0 && date.year % 4 == 0) || (date.year % 400 == 0);
 }
 
-struct Dish {
-	string name;
-	vector<string> ingredients;
-	double price;
-};
+int getDaysInMonth(Date& date) {
+	switch (date.month) {
+		case 4:
+		case 6:
+		case 9:
+		case 11:
+			return 30;
+		case 2:
+			return isLeapYear(date) ? 29 : 28;
+		default: return 31;
+	}
+}
+
+void goToNextDay(Date& date) {
+	date.day++;
+	if (date.day > getDaysInMonth(date)) {
+		date.day = 1;
+		date.month++;
+		if (date.month > 12) {
+			date.month = 1;
+			date.year++;
+		}
+	}
+}
+
+string dateToStr(Date& date) {
+	string str = (date.day < 10 ? "0" : "") + to_string(date.day) + "." +
+		(date.month < 10 ? "0" : "") + to_string(date.month) + "." + to_string(date.year);
+	return str;
+}
+
+void newDate(const string& workdays, Date& date) {
+	ofstream workFile(workdays, ios::app);
+	goToNextDay(date);
+
+	workFile << (date.day < 10 ? "0" : "") << date.day <<
+		"." << (date.month < 10 ? "0" : "") << date.month << "." << date.year << endl;
+	workFile.close();
+}
 
 struct StorageItem {
 	string name;
 	int amount;
 };
 
-vector<StorageItem> createStorageVec(const string& fileName) {
-	ifstream stFile(fileName);
+struct Meal {
+	string name;
+	vector<StorageItem> ingredients;
+	int price;
+};
 
-	if (!stFile.is_open()) {
+void viewMenu(const string& fileName) {
+
+	ifstream menu(fileName);
+
+	if (!menu.is_open()) {
 		cout << "error";
-		return {};
+		return;
 	}
 
 	string line;
-	vector<StorageItem> items;
-	while (getline(stFile, line)) {
-		vector<string> ln = split(line, '=');
-		StorageItem item;
-		item.name = ln[0];
-		item.amount = stoi(ln[1]);
-		items.push_back(item);
+	while (getline(menu, line)) {
+		cout << line << endl;
 	}
-	stFile.close();
-	return items;
-}
-
-void takeOrder(const string& workdays) {
-	cout << "What would you like to order?" << endl;
-
-	string item;
-	cin >> item;
-
-	ofstream workFile(workdays, ios::app);
-
-	workFile << item << endl;
-	workFile.close();
+	menu.close();
 }
 
 vector<Meal> createMenuVec(const string& fileName) {
-	ifstream mFile(fileName);
+	ifstream ifs(fileName);
 
-	if (!mFile.is_open()) {
+	if (!ifs.is_open()) {
 		cout << "error";
 		return {};
 	}
@@ -137,16 +122,16 @@ vector<Meal> createMenuVec(const string& fileName) {
 	string line1, line2;
 	vector<Meal> meals;
 
-	while (getline(mFile, line1)) {
-		getline(mFile, line2);
+	while (getline(ifs, line1)) {
+		getline(ifs, line2);
 		if (line1.empty() || line2.empty() || line1 == "MENU") {
 			continue;
-		} 
+		}
 
-        Meal meal;
+		Meal meal;
 		vector<string> ln1 = split(line1, '-');
 		meal.name = ln1[0];
-		meal.price = stod(ln1[1]);
+		meal.price = stoi(ln1[1]);
 
 		vector<string> ln2 = split(line2, '|');
 		vector<StorageItem> ingredients;
@@ -162,8 +147,29 @@ vector<Meal> createMenuVec(const string& fileName) {
 		meal.ingredients = ingredients;
 		meals.push_back(meal);
 	}
-	mFile.close();
+	ifs.close();
 	return meals;
+}
+
+vector<StorageItem> createStorageVec(const string& fileName) {
+	ifstream ifs(fileName);
+
+	if (!ifs.is_open()) {
+		cout << "error";
+		return {};
+	}
+
+	string line;
+	vector<StorageItem> items;
+	while (getline(ifs, line)) {
+		vector<string> ln = split(line, '=');
+		StorageItem item;
+		item.name = ln[0];
+		item.amount = stoi(ln[1]);
+		items.push_back(item);
+	}
+	ifs.close();
+	return items;
 }
 
 string toLowerCase(string& word) {
@@ -186,7 +192,7 @@ void addDishToMenuFile(Meal meal, const string& fileName) {
 	for (int i = 0; i < meal.ingredients.size(); i++) {
 		StorageItem si = meal.ingredients[i];
 		if (i != (meal.ingredients.size() - 1)) {
-            ofs << si.name << "-" << si.amount << "|";
+			ofs << si.name << "-" << si.amount << "|";
 		}
 		else {
 			ofs << si.name << "-" << si.amount;
@@ -208,7 +214,7 @@ void removeDishFromMenuFile(const string& fileName, string dishToRemove) {
 	vector<string> newFileLines;
 	while (getline(ifs, line1)) {
 		getline(ifs, line2);
-		if (!getline(ifs, line3)){
+		if (!getline(ifs, line3)) {
 			isLastDish = true;
 		}
 		if (isLastDish != true) {
@@ -221,7 +227,7 @@ void removeDishFromMenuFile(const string& fileName, string dishToRemove) {
 			continue;
 		}
 
-        newFileLines.push_back(line1);
+		newFileLines.push_back(line1);
 		newFileLines.push_back(line2);
 
 		if (isLastDish != true) {
@@ -236,7 +242,7 @@ void removeDishFromMenuFile(const string& fileName, string dishToRemove) {
 		return;
 	}
 
-	ofstream ofs(fileName, ios::out);
+	ofstream ofs(fileName, ios::trunc);
 	if (!ofs.is_open()) {
 		cout << "error";
 		return;
@@ -248,67 +254,44 @@ void removeDishFromMenuFile(const string& fileName, string dishToRemove) {
 	ofs.close();
 }
 
-void removeMealFromVec(string mealToRemove, vector<Meal>& meals) {
-	Meal cur;
-	for (int i = 0; i < meals.size(); i++) {
-		cur = { meals[i].name, meals[i].ingredients, meals[i].price};
-
-		if (cur.name == mealToRemove) {
-			meals.erase(meals.begin() + i);
-			break;
-		}
-	}
-}
-
-void viewMenu(const string& fileName) {
-
-	ifstream menu(fileName);
-
-	if (!menu.is_open()) {
-		cout << "error";
-	}
-
-	string line;
-	while (getline(menu, line)) {
-		cout << line << endl;
-	}
-	menu.close();
-}
-
 void viewStorage(const string& fileName) {
-	ifstream stFile(fileName);
+	ifstream ifs(fileName);
 
-	if (!stFile.is_open()) {
+	if (!ifs.is_open()) {
 		cout << "error";
+		return;
 	}
 
 	string line;
-	while (getline(stFile, line)) {
+	while (getline(ifs, line)) {
 		cout << line << endl;
 	}
-	stFile.close();
+	ifs.close();
 }
 
+//returns the number of lines(products) in the storage file
 int ingredientsCount(const string& fileName) {
-	ifstream stFile(fileName);
+	ifstream ifs(fileName);
 
-	if (!stFile.is_open()) {
+	if (!ifs.is_open()) {
 		cout << "error";
+		return 1;
 	}
 
 	string line;
 	int count = 0;
-	while (getline(stFile, line)) {
+	while (getline(ifs, line)) {
 		count++;
 	}
-	stFile.close();
+	ifs.close();
 	return count;
 }
 
-void updateProductAmount(const string& fileName, string product, string amount) {
+//updates the amount of a product in the storage file
+void updateStItemAmountInFile(const string& fileName, string product, string amount) {
 	string line;
 	string updatedLine;
-	vector<string> fileLines;
+	vector<string> newFileLines;
 	ifstream ifs(fileName);
 	if (!ifs.is_open()) {
 		cout << "error";
@@ -317,13 +300,13 @@ void updateProductAmount(const string& fileName, string product, string amount) 
 
 	bool isPresent = false;
 	while (getline(ifs, line)) {
-		vector<string> words = split(line, '=');
-		if (words[0] == product) {
-			words[1] = amount;
+		vector<string> lineVec = split(line, '=');
+		if (lineVec[0] == product) {
+			lineVec[1] = amount;
 			isPresent = true;
 		}
-		updatedLine = words[0] + "=" + words[1];
-		fileLines.push_back(updatedLine);
+		updatedLine = lineVec[0] + "=" + lineVec[1];
+		newFileLines.push_back(updatedLine);
 	}
 	ifs.close();
 
@@ -332,31 +315,34 @@ void updateProductAmount(const string& fileName, string product, string amount) 
 		return;
 	}
 
-    ofstream ofs(fileName, ios::out);
-    if (!ofs.is_open()) {
-        cout << "error";
-        return;
-    }
+	ofstream ofs(fileName, ios::trunc);
+	if (!ofs.is_open()) {
+		cout << "error";
+		return;
+	}
 
-	for (int i = 0; i < fileLines.size(); i++) {
-			ofs << fileLines[i] << endl;
-	   }
+	for (int i = 0; i < newFileLines.size(); i++) {
+		ofs << newFileLines[i] << endl;
+	}
 
 	ofs.close();
 }
 
-void addToItem(string itemToAddTo, int amountToAdd, vector<StorageItem>& items, const string& fileName) {
+//adds a certain amount to a product in the collection
+void addAmountToStItem(string itemToAddTo, int amountToAdd, vector<StorageItem>& items, const string& fileName) {
 	StorageItem cur;
 	for (int i = 0; i < items.size(); i++) {
 		cur = { items[i].name, items[i].amount };
 		if (items[i].name == itemToAddTo) {
 			items[i].amount += amountToAdd;
-			updateProductAmount(fileName, itemToAddTo, to_string(items[i].amount));
+			updateStItemAmountInFile(fileName, itemToAddTo, to_string(items[i].amount));
 			break;
 		}
 	}
 }
-void removeFromItem(string itemToRemoveFrom, int amountToRemove, vector<StorageItem>& items, const string& fileName) {
+
+//removes a certain amount of a product from the collection
+void removeAmountFromStItem(string itemToRemoveFrom, int amountToRemove, vector<StorageItem>& items, const string& fileName) {
 	for (int i = 0; i < items.size(); i++) {
 		if (items[i].name == itemToRemoveFrom) {
 
@@ -366,19 +352,45 @@ void removeFromItem(string itemToRemoveFrom, int amountToRemove, vector<StorageI
 			}
 			else {
 				items[i].amount -= amountToRemove;
-                updateProductAmount(storageFile, itemToRemoveFrom, to_string(items[i].amount));
+				updateStItemAmountInFile(storageFile, itemToRemoveFrom, to_string(items[i].amount));
 				break;
 			}
 		}
 	}
 }
 
+//removes a desired product from the collection
+void removeStItemFromVec(string productToRemove, vector<StorageItem>& items) {
+	StorageItem cur;
+	for (int i = 0; i < items.size(); i++) {
+		cur = { items[i].name, items[i].amount };
 
-int main() {
+		if (cur.name == productToRemove) {
+			items.erase(items.begin() + i);
+			break;
+		}
+	}
+}
 
-	return 0;
+//removes a desired meal from the collection
+void removeMealFromVec(string mealToRemove, vector<Meal>& meals) {
+	Meal cur;
+	for (int i = 0; i < meals.size(); i++) {
+		cur = { meals[i].name, meals[i].ingredients, meals[i].price };
+
+		if (cur.name == mealToRemove) {
+			meals.erase(meals.begin() + i);
+			break;
+		}
+	}
 }
 
 
+int main() {
+	Date date;
+	vector<Meal> meals = createMenuVec(menuFile);
+	vector<StorageItem> products = createStorageVec(storageFile);
+	return 0;
+}
 
 
