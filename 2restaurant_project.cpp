@@ -484,6 +484,11 @@ void cancelOrder(const string& fileName, string& orderToCancel) {
 	ofs.close();
 }
 
+bool isDigit(char c) {
+	return c == '0' || c == '1' || c == '2' || c == '3' || c == '4' ||
+		c == '5' || c == '6' || c == '7' || c == '8' || c == '9';
+}
+
 int getProfitsFromDate(const string& fileName, string& date) {
 	string line;
 	ifstream ifs(fileName);
@@ -510,7 +515,40 @@ int getProfitsFromDate(const string& fileName, string& date) {
 	return profit;
 }
 
+void sortAlpabetically(vector<string>& lines) {
+	for (int i = 0; i < lines.size() - 1; i++) {
+		for (int j = 0; j < lines.size() - i - 1; j++) {
+			if (lines[j] > lines[j + 1]) {
+				swap(lines[j], lines[j + 1]);
+			}
+		}
+	}
+}
 
+void viewOrdersAlphabetically(const string& fileName) {
+	vector<string> lines;
+	string line;
+	ifstream ifs(fileName);
+	if (!ifs.is_open()) {
+		cout << "error";
+		return;
+	}
+
+	while (std::getline(ifs, line)) {
+			if (isDigit(line[0])) {
+				continue;
+		    }
+
+		lines.push_back(line);
+	}
+
+	ifs.close();
+	sortAlpabetically(lines);
+
+		for (string s : lines) {
+			cout << s << endl;
+		}
+}
 
 enum Command {
 	ORDER,
