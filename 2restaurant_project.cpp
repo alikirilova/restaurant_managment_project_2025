@@ -385,11 +385,166 @@ void removeMealFromVec(string mealToRemove, vector<Meal>& meals) {
 	}
 }
 
+bool isItemInMenu(string& name, vector<Meal>& meals) {
+	for (Meal m : meals) {
+		if (m.name == name) {
+			return true;
+		}
+	}
+}
+
+bool areProductsInStock(Meal& meal, vector<StorageItem>& itemsInStock) {
+	vector<StorageItem> neededIngredients = meal.ingredients;
+	for (StorageItem si1 : itemsInStock) {
+		for (StorageItem si2 : neededIngredients) {
+			if (si1.name == si2.name) {
+				if (si1.amount < si2.amount) {
+					return false;
+				}
+			}
+		}
+	}
+	return true;
+}
+
+void takeOrder(const string& workdays, vector<Meal>& meals, vector<StorageItem>& itemsInStock, Date& date) {
+	cout << "What would you like to order?" << endl;
+
+	string item;
+	getline(cin, item);
+	if (!isItemInMenu(item, meals)) {
+		cout << "No such dish in menu.";
+		return;
+	}
+
+	Meal meal;
+	for (Meal m : meals) {
+		if (m.name == item) {
+			meal = m;
+			break;
+		}
+	}
+
+	if (areProductsInStock(meal, itemsInStock)) {
+		for (StorageItem si : meal.ingredients) {
+			removeAmountFromStItem(si.name, si.amount, itemsInStock, storageFile);
+		}
+	}
+	else {
+		cout << "Not enough ingredints.";
+		return;
+	}
+
+	ofstream ofs(workdaysFile, ios::app);
+	if (!ofs.is_open()) {
+		cout << "error";
+		return;
+	}
+	ofs << item << "-" << meal.price << "-" << dateToStr(date) << endl;
+	ofs.close();
+}
+
+void cancelOrder(const string& fileName, string& orderToCancel) {
+	vector<string> lines;
+	string line;
+	ifstream ifs(fileName);
+	if (!ifs.is_open()) {
+		cout << "error";
+		return;
+	}
+
+	while (getline(ifs, line)) {
+		lines.push_back(line);
+	}
+	ifs.close();
+
+	bool isFound = false;
+	string currLine;
+	for (int i = lines.size() - 1; i >= 0; i--) {
+		vector<string> words = split(lines[i], '-');
+		if (words[0] == orderToCancel) {
+			lines.erase(lines.begin() + i);
+			isFound = true;
+		}
+	}
+
+	if (!isFound) {
+		cout << "order not found" << endl;
+		return;
+	}
+
+	ofstream ofs(fileName);
+	if (!ofs.is_open()) {
+		cout << "error";
+		return;
+	}
+	for (int i = 0; i < lines.size(); i++) {
+		ofs << lines[i] << endl;
+	}
+	ofs.close();
+}
+
+enum Command {
+	ORDER,
+	VIEW_MENU,
+	CANCEL_ORDER,
+	VIEW_ALPHABETICALLY,
+	UNKNOWN_COMMAND
+};
+
+Command getCommand(string& input) {
+	if (input == "order") {
+		return ORDER;
+	}
+	else if (input == "view menu") {
+		return VIEW_MENU;
+	}
+	else if (input == "cancel order") {
+		return CANCEL_ORDER;
+	}
+	else if (input == "view orders alphabetically") {
+		return VIEW_ALPHABETICALLY;
+	}
+	return UNKNOWN_COMMAND;
+}
 
 int main() {
 	Date date;
 	vector<Meal> meals = createMenuVec(menuFile);
 	vector<StorageItem> products = createStorageVec(storageFile);
+
+	newDate(workdaysFile, date);
+	cout << "What would you like to do?" << endl;
+	string strCommand;
+	getline(cin, strCommand);
+	Command command;
+
+	while (strCommand != "finish") {
+		command = getCommand(strCommand);
+		switch (command) {
+			case ORDER:
+				takeOrder(workdaysFile, meals, products, date);
+				cout << "order taken" << endl;
+				break;
+			case VIEW_MENU:
+				viewMenu(menuFile);
+				break;
+			case CANCEL_ORDER: {
+					string orderToCancel;
+					cin >> orderToCancel;
+					cancelOrder(workdaysFile, orderToCancel);
+					cout << "order canceled" << endl;
+					break;
+				}
+			case VIEW_ALPHABETICALLY:
+				break;
+			default:
+				cout << "unknown command, try again" << endl;
+				break;
+		}
+		getline(cin, strCommand);
+	}
+
 	return 0;
 }
 
