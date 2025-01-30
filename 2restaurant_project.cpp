@@ -484,6 +484,34 @@ void cancelOrder(const string& fileName, string& orderToCancel) {
 	ofs.close();
 }
 
+int getProfitsFromDate(const string& fileName, string& date) {
+	string line;
+	ifstream ifs(fileName);
+	if (!ifs.is_open()) {
+		cout << "error";
+		return;
+	}
+
+	int profit = 0;
+	int priceOfMeal;
+	while (std::getline(ifs, line)) {
+		if (line == date) {
+			while (std::getline(ifs, line)) {
+				if (isDigit(line[0])) {
+					continue;
+				}
+				vector<string> words = split(line, '-');
+				priceOfMeal = stoi(words[1]);
+				profit += priceOfMeal;
+			}
+			break;
+		}
+	}
+	return profit;
+}
+
+
+
 enum Command {
 	ORDER,
 	VIEW_MENU,
