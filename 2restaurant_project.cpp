@@ -1,5 +1,3 @@
-// finalRestaurantPr.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
 
 #include <iostream>
 #include<fstream>
@@ -10,6 +8,7 @@ using namespace std;
 const string menuFile = "C:\\Users\\User\\Desktop\\restaurant_project\\menu.txt";
 const string workdaysFile = "C:\\Users\\User\\Desktop\\restaurant_project\\workdays.txt";
 const string storageFile = "C:\\Users\\User\\Desktop\\restaurant_project\\storage.txt";
+const string profitsFile = "C:\\Users\\User\\Desktop\\restaurant_project\\profits.txt";
 
 vector<string> split(const string& str, char delimiter) {
 	vector<string> result;
@@ -75,15 +74,20 @@ string dateToStr(Date& date) {
 	return str;
 }
 
-void newDate(const string& workdays, Date& date) {
-	ofstream workFile(workdays, ios::app);
+void writeNewDateInFile(const string& workdays, Date& date) {
+	ofstream ofs(workdays, ios::app);
+	if (!ofs.is_open()) {
+		cout << "error";
+		return;
+	}
+
 	goToNextDay(date);
 
-	workFile << (date.day < 10 ? "0" : "") << date.day <<
+	ofs << (date.day < 10 ? "0" : "") << date.day <<
 		"." << (date.month < 10 ? "0" : "") << date.month << "." << date.year << endl;
-	workFile.close();
+	ofs.close();
 }
-
+ 
 struct StorageItem {
 	string name;
 	int amount;
@@ -95,7 +99,7 @@ struct Meal {
 	int price;
 };
 
-void viewMenu(const string& fileName) {
+void viewFile(const string& fileName) {
 
 	ifstream menu(fileName);
 
@@ -105,7 +109,7 @@ void viewMenu(const string& fileName) {
 	}
 
 	string line;
-	while (getline(menu, line)) {
+	while (std::getline(menu, line)) {
 		cout << line << endl;
 	}
 	menu.close();
@@ -122,8 +126,8 @@ vector<Meal> createMenuVec(const string& fileName) {
 	string line1, line2;
 	vector<Meal> meals;
 
-	while (getline(ifs, line1)) {
-		getline(ifs, line2);
+	while (std::getline(ifs, line1)) {
+		std::getline(ifs, line2);
 		if (line1.empty() || line2.empty() || line1 == "MENU") {
 			continue;
 		}
@@ -161,7 +165,7 @@ vector<StorageItem> createStorageVec(const string& fileName) {
 
 	string line;
 	vector<StorageItem> items;
-	while (getline(ifs, line)) {
+	while (std::getline(ifs, line)) {
 		vector<string> ln = split(line, '=');
 		StorageItem item;
 		item.name = ln[0];
@@ -212,13 +216,13 @@ void removeDishFromMenuFile(const string& fileName, string dishToRemove) {
 	bool isPresent = false;
 	bool isLastDish = false;
 	vector<string> newFileLines;
-	while (getline(ifs, line1)) {
-		getline(ifs, line2);
-		if (!getline(ifs, line3)) {
+	while (std::getline(ifs, line1)) {
+		std::getline(ifs, line2);
+		if (!std::getline(ifs, line3)) {
 			isLastDish = true;
 		}
 		if (isLastDish != true) {
-			getline(ifs, line4);
+			std::getline(ifs, line4);
 		}
 
 		vector<string> ln1 = split(line1, '-');
@@ -254,37 +258,16 @@ void removeDishFromMenuFile(const string& fileName, string dishToRemove) {
 	ofs.close();
 }
 
-void viewStorage(const string& fileName) {
-	ifstream ifs(fileName);
+void removeMealFromVec(string& mealToRemove, vector<Meal>& meals) {
+	Meal cur;
+	for (int i = 0; i < meals.size(); i++) {
+		cur = { meals[i].name, meals[i].ingredients, meals[i].price };
 
-	if (!ifs.is_open()) {
-		cout << "error";
-		return;
+		if (cur.name == mealToRemove) {
+			meals.erase(meals.begin() + i);
+			break;
+		}
 	}
-
-	string line;
-	while (getline(ifs, line)) {
-		cout << line << endl;
-	}
-	ifs.close();
-}
-
-//returns the number of lines(products) in the storage file
-int ingredientsCount(const string& fileName) {
-	ifstream ifs(fileName);
-
-	if (!ifs.is_open()) {
-		cout << "error";
-		return 1;
-	}
-
-	string line;
-	int count = 0;
-	while (getline(ifs, line)) {
-		count++;
-	}
-	ifs.close();
-	return count;
 }
 
 //updates the amount of a product in the storage file
@@ -299,7 +282,7 @@ void updateStItemAmountInFile(const string& fileName, string product, string amo
 	}
 
 	bool isPresent = false;
-	while (getline(ifs, line)) {
+	while (std::getline(ifs, line)) {
 		vector<string> lineVec = split(line, '=');
 		if (lineVec[0] == product) {
 			lineVec[1] = amount;
@@ -325,6 +308,18 @@ void updateStItemAmountInFile(const string& fileName, string product, string amo
 		ofs << newFileLines[i] << endl;
 	}
 
+	ofs.close();
+}
+
+void addStItemToFile(StorageItem& product, const string& fileName) {
+	string linel;
+	ofstream ofs(fileName, ios::app);
+	if (!ofs.is_open()) {
+		cout << "error";
+		return;
+	}
+
+	ofs << toLowerCase(product.name) << "=" << product.amount << endl;
 	ofs.close();
 }
 
@@ -372,17 +367,57 @@ void removeStItemFromVec(string productToRemove, vector<StorageItem>& items) {
 	}
 }
 
-//removes a desired meal from the collection
-void removeMealFromVec(string mealToRemove, vector<Meal>& meals) {
-	Meal cur;
-	for (int i = 0; i < meals.size(); i++) {
-		cur = { meals[i].name, meals[i].ingredients, meals[i].price };
+void removeStItemFromFile(const string& fileName, string& productToRemove) {
+	string line1, line2, line3, line4;
+	ifstream ifs(fileName);
+	if (!ifs.is_open()) {
+		cout << "error";
+		return;
+	}
 
-		if (cur.name == mealToRemove) {
-			meals.erase(meals.begin() + i);
-			break;
+	bool isPresent = false;
+	bool isLastProduct = false;
+	vector<string> newFileLines;
+	while (std::getline(ifs, line1)) {
+		std::getline(ifs, line2);
+		if (!std::getline(ifs, line3)) {
+			isLastProduct = true;
+		}
+		if (isLastProduct != true) {
+			std::getline(ifs, line4);
+		}
+
+		vector<string> ln1 = split(line1, '-');
+		if (ln1[0] == productToRemove) {
+			isPresent = true;
+			continue;
+		}
+
+		newFileLines.push_back(line1);
+		newFileLines.push_back(line2);
+
+		if (isLastProduct != true) {
+			newFileLines.push_back(line3);
+			newFileLines.push_back(line4);
 		}
 	}
+	ifs.close();
+
+	if (isPresent == false) {
+		cout << "No such product found" << endl;
+		return;
+	}
+
+	ofstream ofs(fileName, ios::trunc);
+	if (!ofs.is_open()) {
+		cout << "error";
+		return;
+	}
+
+	for (int i = 0; i < newFileLines.size(); i++) {
+		ofs << newFileLines[i] << endl;
+	}
+	ofs.close();
 }
 
 bool isItemInMenu(string& name, vector<Meal>& meals) {
@@ -407,13 +442,13 @@ bool areProductsInStock(Meal& meal, vector<StorageItem>& itemsInStock) {
 	return true;
 }
 
-void takeOrder(const string& workdays, vector<Meal>& meals, vector<StorageItem>& itemsInStock, Date& date) {
-	cout << "What would you like to order?" << endl;
+void takeOrder(const string& workdays, vector<Meal>& meals, vector<StorageItem>& itemsInStock) {
+	cout << "what is the order?" << endl;
 
 	string item;
-	getline(cin, item);
+	std::getline(cin, item);
 	if (!isItemInMenu(item, meals)) {
-		cout << "No such dish in menu.";
+		cout << "no such dish in menu.";
 		return;
 	}
 
@@ -431,7 +466,7 @@ void takeOrder(const string& workdays, vector<Meal>& meals, vector<StorageItem>&
 		}
 	}
 	else {
-		cout << "Not enough ingredints.";
+		cout << "not enough ingredints.";
 		return;
 	}
 
@@ -440,8 +475,13 @@ void takeOrder(const string& workdays, vector<Meal>& meals, vector<StorageItem>&
 		cout << "error";
 		return;
 	}
-	ofs << item << "-" << meal.price << "-" << dateToStr(date) << endl;
+	ofs << item << "-" << meal.price << endl;
 	ofs.close();
+}
+
+bool isDigit(char c) {
+	return c == '0' || c == '1' || c == '2' || c == '3' || c == '4' ||
+		c == '5' || c == '6' || c == '7' || c == '8' || c == '9';
 }
 
 void cancelOrder(const string& fileName, string& orderToCancel) {
@@ -453,15 +493,28 @@ void cancelOrder(const string& fileName, string& orderToCancel) {
 		return;
 	}
 
-	while (getline(ifs, line)) {
+	while (std::getline(ifs, line)) {
 		lines.push_back(line);
 	}
+
 	ifs.close();
 
 	bool isFound = false;
+	bool haveGoneToPrevDay = false;
 	string currLine;
 	for (int i = lines.size() - 1; i >= 0; i--) {
 		vector<string> words = split(lines[i], '-');
+		for (char c : words[0]) {
+			if (isDigit(c)) {
+				haveGoneToPrevDay = true;
+				isFound = false;
+				break;
+			}
+		}
+		if (haveGoneToPrevDay) {
+			break;
+		}
+
 		if (words[0] == orderToCancel) {
 			lines.erase(lines.begin() + i);
 			isFound = true;
@@ -484,12 +537,27 @@ void cancelOrder(const string& fileName, string& orderToCancel) {
 	ofs.close();
 }
 
-bool isDigit(char c) {
-	return c == '0' || c == '1' || c == '2' || c == '3' || c == '4' ||
-		c == '5' || c == '6' || c == '7' || c == '8' || c == '9';
+Date getLastDate(const string& fileName) {
+	string line;
+	ifstream ifs(fileName);
+	if (!ifs.is_open()) {
+		cout << "error";
+		return;
+	}
+
+	Date date;
+	while (std::getline(ifs, line)) {
+		if (isDigit(line[0])) {
+			vector<string> numbers = split(line, '.');
+			date.day = stoi(numbers[0]);
+			date.month = stoi(numbers[1]);
+			date.year = stoi(numbers[2]);
+		}
+	}
+	return date;
 }
 
-int getProfitsFromDate(const string& fileName, string& date) {
+int getSumOfProfitsFromDate(const string& fileName, string& date) {
 	string line;
 	ifstream ifs(fileName);
 	if (!ifs.is_open()) {
@@ -503,7 +571,7 @@ int getProfitsFromDate(const string& fileName, string& date) {
 		if (line == date) {
 			while (std::getline(ifs, line)) {
 				if (isDigit(line[0])) {
-					continue;
+					break;
 				}
 				vector<string> words = split(line, '-');
 				priceOfMeal = stoi(words[1]);
@@ -514,6 +582,7 @@ int getProfitsFromDate(const string& fileName, string& date) {
 	}
 	return profit;
 }
+
 
 void sortAlpabetically(vector<string>& lines) {
 	for (int i = 0; i < lines.size() - 1; i++) {
@@ -535,9 +604,9 @@ void viewOrdersAlphabetically(const string& fileName) {
 	}
 
 	while (std::getline(ifs, line)) {
-			if (isDigit(line[0])) {
-				continue;
-		    }
+		if (isDigit(line[0])) {
+			continue;
+		}
 
 		lines.push_back(line);
 	}
@@ -545,73 +614,119 @@ void viewOrdersAlphabetically(const string& fileName) {
 	ifs.close();
 	sortAlpabetically(lines);
 
-		for (string s : lines) {
-			cout << s << endl;
-		}
+	for (string s : lines) {
+		cout << s << endl;
+	}
 }
 
 enum Command {
-	ORDER,
-	VIEW_MENU,
-	CANCEL_ORDER,
-	VIEW_ALPHABETICALLY,
+	VIEW_MENU, VIEW_STORAGE,
+	VIEW_ORDERS, VIEW_ORDERS_ALPHABETICALLY,
+	TAKE_ORDER, CANCEL_ORDER,
+	REMOVE_PRODUCT, ADD_PRODUCT,
+	ADD_DISH, REMOVE_DISH,
+	GET_CURRENT_PROFIT, GET_PROFIT_FROM_DATE,
+	SHOW_OPTIONS,
 	UNKNOWN_COMMAND
 };
 
 Command getCommand(string& input) {
-	if (input == "order") {
-		return ORDER;
-	}
-	else if (input == "view menu") {
-		return VIEW_MENU;
-	}
-	else if (input == "cancel order") {
-		return CANCEL_ORDER;
-	}
-	else if (input == "view orders alphabetically") {
-		return VIEW_ALPHABETICALLY;
-	}
+	if (input == "order") {return TAKE_ORDER;}
+	else if (input == "view menu") {return VIEW_MENU;}
+	else if (input == "view storage") {return VIEW_STORAGE;}
+	else if (input == "view orders") {return VIEW_ORDERS;}
+	else if (input == "cancel order") {return CANCEL_ORDER;}
+	else if (input == "view orders alphabetically") {return VIEW_ORDERS_ALPHABETICALLY;}
+	else if (input == "remove product from storage") {return REMOVE_PRODUCT;}
+	else if (input == "add product to storage") {return ADD_PRODUCT;}
+	else if (input == "add dish to menu") {return ADD_DISH;}
+	else if (input == "remove dish from menu") {return REMOVE_DISH;}
+	else if (input == "view current profit") {return GET_CURRENT_PROFIT;}
+	else if (input == "view profit starting from past date") {return GET_PROFIT_FROM_DATE;}
+	else if (input == "show all options") {return SHOW_OPTIONS;}
 	return UNKNOWN_COMMAND;
 }
 
-int main() {
-	Date date;
-	vector<Meal> meals = createMenuVec(menuFile);
-	vector<StorageItem> products = createStorageVec(storageFile);
-
-	newDate(workdaysFile, date);
-	cout << "What would you like to do?" << endl;
+void runProgramAsServer(Date& date, vector<Meal>& meals, vector<StorageItem> products) {
+	cout << "what would you like to do?" << endl;
+	writeNewDateInFile(workdaysFile, date);
 	string strCommand;
-	getline(cin, strCommand);
+	std::getline(cin, strCommand);
 	Command command;
 
 	while (strCommand != "finish") {
 		command = getCommand(strCommand);
+
 		switch (command) {
-			case ORDER:
-				takeOrder(workdaysFile, meals, products, date);
-				cout << "order taken" << endl;
-				break;
+
 			case VIEW_MENU:
-				viewMenu(menuFile);
+				viewFile(menuFile);
+				cout << "what's next?" << endl;
 				break;
-			case CANCEL_ORDER: {
+
+	        case TAKE_ORDER:
+				takeOrder(workdaysFile, meals, products);
+				cout << "the order is taken. what's next?" << endl;
+				break;
+
+            case CANCEL_ORDER: {
 					string orderToCancel;
 					cin >> orderToCancel;
 					cancelOrder(workdaysFile, orderToCancel);
-					cout << "order canceled" << endl;
+					cout << "order canceled. what's next?" << endl;
 					break;
 				}
-			case VIEW_ALPHABETICALLY:
+
+            case VIEW_ORDERS:
+				viewFile(workdaysFile);
+				cout << "what's next?" << endl;
 				break;
+
+            case VIEW_ORDERS_ALPHABETICALLY:
+				viewOrdersAlphabetically(workdaysFile);
+				cout << "orders dispayed alpabetically. what's next?" << endl;
+				break;
+
+			case GET_CURRENT_PROFIT: {
+					Date date = getLastDate(workdaysFile);
+					string todaysDate = dateToStr(date);
+					cout << "the profit from today so far is " << getSumOfProfitsFromDate(workdaysFile, todaysDate) << " lv. what's next?" << endl;
+					break;
+				}
+
+			case SHOW_OPTIONS:
+				cout << "view menu \ntake order \ncancel order \nview orders \nview orders alphabetically \nview current profit \n";
+				break;
+
 			default:
 				cout << "unknown command, try again" << endl;
 				break;
 		}
-		getline(cin, strCommand);
+
+		std::getline(cin, strCommand);
+	}
+}
+
+
+int main() {
+	cout << "are you the manager or a server?" << endl;
+	string person;
+	cin >> person;
+
+	Date date = getLastDate(workdaysFile);
+	vector<Meal> meals = createMenuVec(menuFile);
+	vector<StorageItem> products = createStorageVec(storageFile);
+
+	if (person == "manager") {
+		runProgramAsServer(date, meals, products);
+	}
+	else if (person == "server") {
+
+	}
+	else {
+		cout << "invalid input";
+		return 0;
 	}
 
 	return 0;
 }
-
-
