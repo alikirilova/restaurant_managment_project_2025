@@ -26,6 +26,25 @@ const string workdaysFile = "C:\\Users\\User\\Desktop\\restaurant_project\\workd
 const string storageFile = "C:\\Users\\User\\Desktop\\restaurant_project\\storage.txt";
 const string profitsFile = "C:\\Users\\User\\Desktop\\restaurant_project\\profits.txt";
 
+bool isValidForStoi(const string& str) {
+	if (str.empty()) return false; 
+
+	size_t start = 0;
+
+	if (str[0] == '-') {
+		if (str.size() == 1) return false;  
+		start = 1;
+	}
+
+	for (size_t i = start; i < str.size(); ++i) {
+		if (!isdigit(str[i])) {
+			return false;  
+		}
+	}
+
+	return true;  
+}
+
 vector<string> split(const string& str, char delimiter) {
 	vector<string> result;
 	string current;
@@ -666,7 +685,7 @@ void fillProfitsFile(const string& workdaysF, const string& profitsF) {
 		return;
 	}
 	for (int i = 0; i < profitsVec.size(); i++) {
-		ofs << dateToStr(datesVec[i]) << "-" << profitsVec[i] << " lv." << endl;
+		ofs << dateToStr(datesVec[i]) << "-" << profitsVec[i] << endl;
 	}
 	ofs.close();
 }
