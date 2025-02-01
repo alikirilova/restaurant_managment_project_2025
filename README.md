@@ -75,14 +75,20 @@ ingredient-amount in grams|ingredient-amount in grams|ingredient-amount in grams
 
 workdays.txt: Keeps track of daily orders. It's witten in the following format:
 "date
-order-price
-order-price
-date
-order-price"
 
+order-price
+
+order-price
+
+date
+
+order-price"
+(no empty lines inbetween)
 storage.txt: Stores amounts of the products in grams (only aggs and tortillas are as count) . It's witten in the following format:
 "product=amount
-product=amount"
 
+product=amount"
+(no empty lines inbetween)
 profits.txt: Stores profit reports for different days. It's witten in the following format:
 "date-profit"
+(no empty lines inbetween)
