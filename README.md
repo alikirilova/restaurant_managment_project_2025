@@ -53,6 +53,7 @@ provided from the program.
 File info:
 
 menu.txt: Stores the menu items. It's witten in the following format
+
 "MENU
 
 name-price
@@ -74,6 +75,7 @@ ingredient-amount in grams|ingredient-amount in grams|ingredient-amount in grams
 (two lines between different items, no empty line betweem name and ingredients)
 
 workdays.txt: Keeps track of daily orders. It's witten in the following format:
+
 "date
 
 order-price
@@ -83,12 +85,19 @@ order-price
 date
 
 order-price"
+
 (no empty lines inbetween)
+
 storage.txt: Stores amounts of the products in grams (only aggs and tortillas are as count) . It's witten in the following format:
+
 "product=amount
 
 product=amount"
+
 (no empty lines inbetween)
+
 profits.txt: Stores profit reports for different days. It's witten in the following format:
+
 "date-profit"
+
 (no empty lines inbetween)
