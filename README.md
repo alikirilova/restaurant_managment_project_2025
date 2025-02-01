@@ -71,6 +71,8 @@ name-price
 
 ingredient-amount in grams|ingredient-amount in grams|ingredient-amount in grams|ingredient-amount in grams"
 
+(two lines between different items, no empty line betweem name and ingredients)
+
 workdays.txt: Keeps track of daily orders. It's witten in the following format:
 "date
 order-price
