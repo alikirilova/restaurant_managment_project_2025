@@ -1085,7 +1085,7 @@ int main() {
 	vector<Meal> meals = createMenuVec(menuFile);
 	vector<StorageItem> products = createStorageVec(storageFile);
 
-	while (person != "server" || person != "manager") {
+	while (person != "server" && person != "manager") {
 		cout << "invalid input. please type \"manager\" or \"server\"." << endl;
 		cin >> person;
 	}
