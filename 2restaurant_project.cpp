@@ -27,22 +27,22 @@ const string storageFile = "C:\\Users\\User\\Desktop\\restaurant_project\\storag
 const string profitsFile = "C:\\Users\\User\\Desktop\\restaurant_project\\profits.txt";
 
 bool isValidForStoi(const string& str) {
-	if (str.empty()) return false; 
+	if (str.empty()) return false;
 
 	size_t start = 0;
 
 	if (str[0] == '-') {
-		if (str.size() == 1) return false;  
+		if (str.size() == 1) return false;
 		start = 1;
 	}
 
 	for (size_t i = start; i < str.size(); ++i) {
 		if (!isdigit(str[i])) {
-			return false;  
+			return false;
 		}
 	}
 
-	return true;  
+	return true;
 }
 
 vector<string> split(const string& str, char delimiter) {
@@ -524,7 +524,7 @@ void takeOrder(const string& workdays, vector<Meal>& meals, vector<StorageItem>&
 		cout << "not enough ingredints.";
 		return;
 	}
-
+	cout << "the order is taken" << endl;
 	ofstream ofs(workdaysFile, ios::app);
 	if (!ofs.is_open()) {
 		cout << "error";
@@ -553,7 +553,7 @@ void cancelOrder(const string& fileName, string& orderToCancel) {
 
 	ifs.close();
 
-	bool isFound = false;
+	bool isFound = true ;
 	bool haveGoneToPrevDay = false;
 	string currLine;
 	for (int i = lines.size() - 1; i >= 0; i--) {
@@ -602,7 +602,7 @@ Date getLastDate(const string& fileName) {
 	while (std::getline(ifs, line)) {
 		if (isDigit(line[0])) {
 			vector<string> numbers = split(line, '.');
-			
+
 			date.day = stoi(numbers[0]);
 			date.month = stoi(numbers[1]);
 			date.year = stoi(numbers[2]);
@@ -642,7 +642,7 @@ int getSumOfProfitsFromDate(const string& fileName, string& date) {
 
 //reads the workdays file and sums up the money earned every day and writes it in a new file 
 void fillProfitsFile(const string& workdaysF, const string& profitsF) {
-	string line; 
+	string line;
 	vector<int> profitsVec;
 	vector<Date> datesVec;
 	ifstream ifs(workdaysF);
@@ -747,7 +747,7 @@ void viewOrdersAlphabetically(const string& fileName) {
 
 bool isValidStr(string& str) {
 	for (char ch : str) {
-		if (!((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z'))) {
+		if (!(ch >= 'A' && ch <= 'Z') && !(ch >= 'a' && ch <= 'z')) {
 			return false;
 		}
 	}
@@ -848,9 +848,10 @@ void showManagerOptions() {
 
 void runProgramAsServer(Date& date, vector<Meal>& meals, vector<StorageItem> products) {
 	cout << "here are all your options. what would you like to do? type the corresponding number" << endl;
+	showServerOptions();
 	writeNewDateInFile(workdaysFile, date);
 	string strCommand;
-	std::getline(cin, strCommand);
+	cin >> strCommand;
 	Command command;
 
 	while (strCommand != "finish") {
@@ -865,14 +866,15 @@ void runProgramAsServer(Date& date, vector<Meal>& meals, vector<StorageItem> pro
 
 			case TAKE_ORDER:
 				takeOrder(workdaysFile, meals, products);
-				cout << "the order is taken. what's next?" << endl;
+				cout << "what's next?" << endl;
 				break;
 
 			case CANCEL_ORDER: {
+					cout << "type the dish name of the order you want to cancel" << endl;
 					string orderToCancel;
 					cin >> orderToCancel;
 					if (!isValidStr(orderToCancel) || !isItemInMenu(orderToCancel, meals)) {
-						cout << "invalid dish name, try again";
+						cout << "invalid dish name, try again" << endl;
 						break;
 					}
 					cancelOrder(workdaysFile, orderToCancel);
@@ -909,6 +911,7 @@ void runProgramAsServer(Date& date, vector<Meal>& meals, vector<StorageItem> pro
 
 void runProgramAsManager(Date& date, vector<Meal>& meals, vector<StorageItem> products) {
 	cout << "here are all your options. what would you like to do? type the corresponding number" << endl;
+	showManagerOptions();
 	writeNewDateInFile(workdaysFile, date);
 	string strCommand;
 	std::getline(cin, strCommand);
@@ -926,10 +929,11 @@ void runProgramAsManager(Date& date, vector<Meal>& meals, vector<StorageItem> pr
 
 			case TAKE_ORDER:
 				takeOrder(workdaysFile, meals, products);
-				cout << "the order is taken. what's next?" << endl;
+				cout << "what's next?" << endl;
 				break;
 
 			case CANCEL_ORDER: {
+					cout << "type the dish name of the order you want to cancel" << endl;
 					string orderToCancel;
 					cin >> orderToCancel;
 					if (!isValidStr(orderToCancel) || !isItemInMenu(orderToCancel, meals)) {
@@ -957,6 +961,7 @@ void runProgramAsManager(Date& date, vector<Meal>& meals, vector<StorageItem> pr
 				break;
 
 			case REMOVE_PRODUCT: {
+					cout << "type the name of the product you want to remove from the storage" << endl;
 					string product;
 					cin >> product;
 					if (!isValidStr(product) || !containsInSIVec(products, product)) {
@@ -970,6 +975,7 @@ void runProgramAsManager(Date& date, vector<Meal>& meals, vector<StorageItem> pr
 				}
 
 			case ADD_PRODUCT: {
+					cout << "type the name of the product you want to add to the storage then its amount in grams" << endl;
 					string product;
 					int amount;
 					cin >> product >> amount;
@@ -990,32 +996,33 @@ void runProgramAsManager(Date& date, vector<Meal>& meals, vector<StorageItem> pr
 				}
 
 			case GET_CURRENT_PROFIT: {
-					Date date = getLastDate(workdaysFile);
-					string todaysDate = dateToStr(date);
+					Date theDate = getLastDate(workdaysFile);
+					string todaysDate = dateToStr(theDate);
 					cout << "the profit from today so far is " << getSumOfProfitsFromDate(workdaysFile, todaysDate)
 						<< " lv. what's next?" << endl;
 					break;
 				}
 
 			case GET_LIST_OF_PROFITS_FROM_DATE: {
-					string date;
-					cin >> date;
-					if (!isValidDate(date)) {
-						cout << "invalid date, try again";
+					cout << "type your desired starting date" << endl;
+					string theDate;
+					cin >> theDate;
+					if (!isValidDate(theDate)) {
+						cout << "date should be valid and in format dd.mm.yyyy, try again."<<endl;
 						break;
 					}
-					cout << "the profits from" << date << " untill now are:" << endl;
-					listOfProfitsFromDate(profitsFile, date);
+					cout << "the profits from" << theDate << " untill now are:" << endl;
+					listOfProfitsFromDate(profitsFile, theDate);
 					cout << "what's next?" << endl;
 					break;
 				}
 
 			case GET_DAILY_REPORT: {
 					fillProfitsFile(workdaysFile, profitsFile);
-					Date date = getLastDate(workdaysFile);
-					string todaysDate = dateToStr(date);
+					Date theDate = getLastDate(workdaysFile);
+					string todaysDate = dateToStr(theDate);
 					int todaysProfit = getSumOfProfitsFromDate(workdaysFile, todaysDate);
-					cout << "today's profit is " << todaysProfit << "lv. it has been written in the profits file."
+					cout << "today's profit is " << todaysProfit << " lv. it has been written in the profits file."
 						<< " what's next?" << endl;
 					break;
 				}
@@ -1027,7 +1034,7 @@ void runProgramAsManager(Date& date, vector<Meal>& meals, vector<StorageItem> pr
 					vector<StorageItem> ingredients;
 					cout << "enter the name of the dish, then its price" << endl;
 					cin >> name >> price;
-					cout << "now enter the ingredients and their amounts" << endl;
+					cout << "now enter the ingredients and their amounts. when you have entered all of them, type \"that's all\"" << endl;
 					string productName;
 					cin >> productName;
 
@@ -1055,6 +1062,7 @@ void runProgramAsManager(Date& date, vector<Meal>& meals, vector<StorageItem> pr
 				}
 
 			case REMOVE_DISH: {
+					cout << "type the name of the dish you want to remove from the menu" << endl;
 					string dishName;
 					cin >> dishName;
 					if (!isValidStr(dishName) || !isItemInMenu(dishName, meals)) {
@@ -1099,5 +1107,4 @@ int main() {
 
 	return 0;
 }
-
 
