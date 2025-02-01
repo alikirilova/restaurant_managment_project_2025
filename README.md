@@ -56,14 +56,17 @@ menu.txt: Stores the menu items. It's witten in the following format
 "MENU
 
 name-price
+
 ingredient-amount in grams|ingredient-amount in grams|ingredient-amount in grams
 
 
 name-price
+
 ingredient-amount in grams|ingredient-amount in grams
 
 
 name-price
+
 ingredient-amount in grams|ingredient-amount in grams|ingredient-amount in grams|ingredient-amount in grams"
 
 workdays.txt: Keeps track of daily orders. It's witten in the following format:
