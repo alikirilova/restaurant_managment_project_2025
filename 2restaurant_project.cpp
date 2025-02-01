@@ -535,7 +535,7 @@ void takeOrder(const string& workdays, vector<Meal>& meals, vector<StorageItem>&
 }
 
 bool isDigit(char c) {
-	return (c > '0' && c < '9');
+	return (c >= '0' && c <= '9');
 }
 
 void cancelOrder(const string& fileName, string& orderToCancel) {
