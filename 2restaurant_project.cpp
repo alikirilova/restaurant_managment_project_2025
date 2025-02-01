@@ -480,6 +480,7 @@ bool isItemInMenu(string& name, vector<Meal>& meals) {
 			return true;
 		}
 	}
+	return false;
 }
 
 bool areProductsInStock(Meal& meal, vector<StorageItem>& itemsInStock) {
@@ -534,7 +535,7 @@ void takeOrder(const string& workdays, vector<Meal>& meals, vector<StorageItem>&
 }
 
 bool isDigit(char c) {
-	return (c < '0' || c > '9');
+	return (c > '0' && c < '9');
 }
 
 void cancelOrder(const string& fileName, string& orderToCancel) {
