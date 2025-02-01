@@ -1,0 +1,32 @@
+MENU
+
+nachos with guacamole-12
+nachos-100|guacamole-210|cheese-50
+
+
+chicken tacos-13
+tortilla-2|chicken-200|iceberg lettuce-50|tomato salsa-80
+
+
+chicken enchiladas-16
+tortilla-2|chicken-200|tomato sauce-150|cheese-70
+
+
+shrimp fajitas-18
+shrimp-150|bell peppers-80|onions-50|tortilla-2|avocado-50
+
+
+churros with chocolate sauce-10
+dough-150|cinnamon sugar-20|chocolate sauce-150
+
+
+flan-8
+eggs-2|condensed milk-250|caramel-100|vanilla-2
+
+
+margarita-12
+tequila-70|lime-50|orange liqueur-30
+
+
+horchata-6
+rice milk-200|cinnamon sugar-20|vanilla-1
