@@ -470,7 +470,7 @@ void removeFromFile(const string& fileName, string& productToRemove) {
 	}
 	ifs.close();
 
-	for (int i = 0;i<lines.size();i++) {
+	for (int i = 0; i < lines.size(); i++) {
 		vector<string> words = split(lines[i], '=');
 		if (words[0] == productToRemove) {
 			lines.erase(lines.begin() + i);
@@ -568,7 +568,7 @@ void cancelOrder(const string& fileName, string& orderToCancel) {
 	string currLine;
 	for (int i = lines.size() - 1; i >= 0; i--) {
 		vector<string> words = split(lines[i], '-');
-		
+
 		if (isDigit(words[0][0])) {
 			haveGoneToPrevDay = true;
 			isFound = false;
@@ -869,12 +869,12 @@ void runProgramAsServer(Date& date, vector<Meal>& meals, vector<StorageItem> pro
 
 		if (command == VIEW_MENU) {
 			viewFile(menuFile);
-			cout << "what's next?" << endl;
+			cout << endl << "what's next?" << endl;
 		}
 		else if (command == TAKE_ORDER) {
 			cin.ignore();
 			takeOrder(workdaysFile, meals, products);
-			cout << "what's next?" << endl;
+			cout << endl << "what's next?" << endl;
 		}
 		else if (command == CANCEL_ORDER) {
 			cout << "type the dish name of the order you want to cancel" << endl;
@@ -882,20 +882,20 @@ void runProgramAsServer(Date& date, vector<Meal>& meals, vector<StorageItem> pro
 			cin.ignore();
 			getline(cin, orderToCancel);
 			cancelOrder(workdaysFile, orderToCancel);
-			cout << "order of " << orderToCancel << " canceled. what's next?" << endl;
+			cout << endl << "order of " << orderToCancel << " canceled. what's next?" << endl;
 		}
 		else if (command == VIEW_ORDERS) {
 			viewFile(workdaysFile);
-			cout << "what's next?" << endl;
+			cout << endl << "what's next?" << endl;
 		}
 		else if (command == VIEW_ORDERS_ALPHABETICALLY) {
 			viewOrdersAlphabetically(workdaysFile);
-			cout << "orders displayed alphabetically. what's next?" << endl;
+			cout << endl << "orders displayed alphabetically. what's next?" << endl;
 		}
 		else if (command == GET_CURRENT_PROFIT) {
 			Date date = getLastDate(workdaysFile);
 			string todaysDate = dateToStr(date);
-			cout << "the profit from today so far is " << getSumOfProfitsFromDate(workdaysFile, todaysDate) << " lv. what's next?" << endl;
+			cout << endl << "the profit from today so far is " << getSumOfProfitsFromDate(workdaysFile, todaysDate) << " lv. what's next?" << endl;
 		}
 		else {
 			cout << "unknown command, try again" << endl;
@@ -918,12 +918,12 @@ void runProgramAsManager(Date& date, vector<Meal>& meals, vector<StorageItem> pr
 
 		if (command == VIEW_MENU) {
 			viewFile(menuFile);
-			cout << "what's next?" << endl;
+			cout << endl << "what's next?" << endl;
 		}
 		else if (command == TAKE_ORDER) {
 			cin.ignore();
 			takeOrder(workdaysFile, meals, products);
-			cout << "what's next?" << endl;
+			cout << endl << "what's next?" << endl;
 		}
 		else if (command == CANCEL_ORDER) {
 			cout << "type the dish name of the order you want to cancel" << endl;
@@ -931,15 +931,15 @@ void runProgramAsManager(Date& date, vector<Meal>& meals, vector<StorageItem> pr
 			getline(cin, orderToCancel);
 			cin.ignore();
 			cancelOrder(workdaysFile, orderToCancel);
-			cout << "order canceled. what's next?" << endl;
+			cout << endl << "order canceled. what's next?" << endl;
 		}
 		else if (command == VIEW_ORDERS) {
 			viewFile(workdaysFile);
-			cout << "what's next?" << endl;
+			cout << endl << "what's next?" << endl;
 		}
 		else if (command == VIEW_ORDERS_ALPHABETICALLY) {
 			viewOrdersAlphabetically(workdaysFile);
-			cout << "orders displayed alphabetically. what's next?" << endl;
+			cout << endl << "orders displayed alphabetically. what's next?" << endl;
 		}
 		else if (command == VIEW_STORAGE) {
 			viewFile(storageFile);
@@ -951,22 +951,23 @@ void runProgramAsManager(Date& date, vector<Meal>& meals, vector<StorageItem> pr
 			cin >> product;
 			removeStItemFromFile(storageFile, product);
 			removeStItemFromVec(product, products);
-			cout << "product removed from storage. what's next?" << endl;
+			cout << endl << "product removed from storage. what's next?" << endl;
 		}
 		else if (command == GET_DAILY_REPORT) {
 			fillProfitsFile(workdaysFile, profitsFile);
 			viewFile(profitsFile);
-			cout << "what's next?" << endl;
+			cout << endl << "what's next?" << endl;
 		}
 		else if (command == GET_LIST_OF_PROFITS_FROM_DATE) {
 			string theDate;
+			cout << "type the beginning date in format dd.mm.yyyy" << endl;
 			cin >> theDate;
 			if (!isValidDate(theDate)) {
-				cout << "date should be valid and in format dd.mm.yyyy. what's next?";
+				cout << endl << "date should be valid and in format dd.mm.yyyy. what's next?";
 			}
 			else {
 				listOfProfitsFromDate(profitsFile, theDate);
-				cout << "protis displayed. what's next?" << endl;
+				cout << endl << "profits displayed. what's next?" << endl;
 			}
 		}
 		else if (command == ADD_PRODUCT) {
@@ -976,21 +977,22 @@ void runProgramAsManager(Date& date, vector<Meal>& meals, vector<StorageItem> pr
 			cin >> product >> amount;
 			if (!isValidNumber(amount) || !isValidStr(product)) {
 				cout << "invaid word or number" << endl;
-			} else if (containsInSIVec(products, product)) {
+			}
+			else if (containsInSIVec(products, product)) {
 				addAmountToStItem(product, amount, products, storageFile);
-				cout << "product added to the storage. what's next?" << endl;
+				cout << endl << "product added to the storage. what's next?" << endl;
 			}
 			else {
 				StorageItem si = { product, amount };
 				addStItemToFile(si, storageFile);
 				products.push_back(si);
-				cout << "product added to the storage. what's next?" << endl;
+				cout << endl << "product added to the storage. what's next?" << endl;
 			}
 		}
 		else if (command == GET_CURRENT_PROFIT) {
 			Date theDate = getLastDate(workdaysFile);
 			string todaysDate = dateToStr(theDate);
-			cout << "the profit from today so far is " << getSumOfProfitsFromDate(workdaysFile, todaysDate) 
+			cout << endl << "the profit from today so far is " << getSumOfProfitsFromDate(workdaysFile, todaysDate)
 				<< " lv. what's next?" << endl;
 		}
 		else if (command == ADD_DISH) {
@@ -999,18 +1001,22 @@ void runProgramAsManager(Date& date, vector<Meal>& meals, vector<StorageItem> pr
 			int price;
 			vector<StorageItem> products;
 			cout << "type the name of the dish, then its price" << endl;
-			cin >> name >> price;
+			cin.ignore();
+			getline(cin, name);
+			cin >> price;
 			string productName;
-			cout << "now type the name of each ingrediant, followed by its needed amount in grams."  
+			cout << endl << "now type the name of each ingrediant, followed by its needed amount in grams."
 				<< " when you're done, type \"that's all\"" << endl;
 			cin >> productName;
 
 			while (productName != "that's all") {
 				StorageItem si;
 				si.name = productName;
-				cin >> si.amount;
+				int amount;
+				cin >> amount;
 
-				if (si.amount > 0) {
+				if (amount > 0) {
+					si.amount = amount;
 					products.push_back(si);
 				}
 
@@ -1024,15 +1030,15 @@ void runProgramAsManager(Date& date, vector<Meal>& meals, vector<StorageItem> pr
 			addDishToMenuFile(meal, menuFile);
 			meals.push_back(meal);
 			break;
-			}
+		}
 		else if (command == REMOVE_DISH) {
 			cout << "enter the name of the dish you want to remove from the manu" << endl;
 			string dishName;
-			cin >> dishName;
+			cin.ignore();
+			getline(cin, dishName);
 			removeDishFromMenuFile(menuFile, dishName);
 			removeMealFromVec(dishName, meals);
 			break;
-
 		}
 		else {
 			cout << "unknown command, try again" << endl;
@@ -1066,4 +1072,3 @@ int main() {
 
 	return 0;
 }
-
